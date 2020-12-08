@@ -2,8 +2,9 @@ from sklearn.datasets import load_iris
 
 from sklearn.model_selection import train_test_split
 
-from sklearn.naive_bayes import GaussianNB
-from sklearn.naive_bayes import ComplementNB
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 
 from sklearn.cluster import KMeans
 
@@ -58,7 +59,6 @@ dataNames = [
 'epa'
 ]
 
-
 # resultNames = ['isDefensivePI']
 
 # resultNames = ['penaltyCodes']
@@ -67,32 +67,35 @@ resultNames = ['offensePlayResult']
 
 # resultNames = ['passResult']
 
-orignalData = read_csv('Data/plays.csv')
-wantedData = orignalData[names]
+fullDataset = read_csv('Data/plays.csv')
+
+features = fullDataset[names]
+
 # Get rid of any row that doesn't have one of the datapoints we're looking at
-features = wantedData.dropna()
+allClear = features.dropna()
 
-X = features[dataNames]
-Y = features[resultNames]
+finalData = allClear[names]
 
-# Dimension Reduction via LDA
-# scaler = LDA()
-# X = scaler.fit_transform(X,Y.values.ravel())
+X = finalData[dataNames]
+Y = finalData[resultNames]
+
+# Dimension Reduction via LDA (From Naive Bayes)
+scaler = LDA()
+X = scaler.fit_transform(X,Y.values.ravel())
 
 # Dimension Reduction via PCA
-pca = PCA(n_components='mle')
-X = pca.fit_transform(X)
+# pca = PCA(n_components='mle')
+# X = pca.fit_transform(X)
 
 accuracy = []
 
-for i in range(10,100):
+# gnb = ComplementNB(norm = True)
+
+for i in range(0,20):
 	X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.5)
+	clf = make_pipeline(StandardScaler(), SVC(gamma='auto'))
 
-	# gnb = ComplementNB(norm = True)
-
-	# Need to explore the multinomial classifier a bit more
-	gnb = GaussianNB()
-	y_pred = gnb.fit(X_train, y_train.values.ravel()).predict(X_test)
+	y_pred = clf.fit(X_train, y_train.values.ravel()).predict(X_test)
 
 	# print("Class Priors: " + str(gnb.class_prior_[1]))
 
